@@ -1,0 +1,89 @@
+plugins {
+    id 'fabric-loom' version "${loom_version}"
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '7.1.2' apply false
+}
+
+var ENV = System.getenv()
+
+if (ENV.MCMC_BUILD_NUMBER) {
+    version = "${mod_version}.${ENV.MCMC_BUILD_NUMBER}"
+} else {
+    version = project.minecraft_version + "-" + project.mod_version
+}
+
+group = project.maven_group
+
+loom {
+    accessWidenerPath = file("src/main/resources/${project.archives_base_name}.accessWidener")
+}
+
+repositories {
+    mavenLocal()
+    flatDir { dirs 'libs' }
+    mavenCentral()
+
+    maven {
+        url "https://www.cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+loom {
+    runs {
+        client {
+            programArg '--username=Dev'
+            programArg '--uuid=c2f44529-eb64-40d0-b970-5ad748c7b377'
+            vmArg '-Dmixin.debug=true'
+        }
+        server {
+            runDir = "runserver"
+            vmArg '-Dmixin.debug=true'
+        }
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
+
+java {
+    archivesBaseName =  project.archives_base_name + "-fabric"
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifact jar
+        }
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

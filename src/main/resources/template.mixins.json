@@ -1,0 +1,16 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.template.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixinPriority": 200,
+  "mixins": [
+  ],
+  "client": [
+    "MixinTest1",
+    "MixinTest2"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
